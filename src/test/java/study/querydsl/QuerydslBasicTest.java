@@ -237,4 +237,53 @@ class QuerydslBasicTest {
     assertThat(teamB.get(team.name)).isEqualTo("teamB");
     assertThat(teamB.get(member.age.avg())).isEqualTo(35);
   }
+
+  @Test
+  void testBasicJoin() throws Exception {
+    // given
+
+    // when
+    // teamA 에 소속된 모든 멤버
+    List<Member> result =
+        queryFactory
+            .selectFrom(member)
+            .join(member.team, team) // default : innerJoin, outerJoin (left, right) 모두 지원
+            .where(team.name.eq("teamA"))
+            .fetch();
+
+    // then
+    assertThat(result).extracting("username").containsExactly("member1", "member2");
+  }
+
+  /**
+   * 연관관계가 없어도 join 가능 (Theta join)
+   *
+   * ! 주의할점
+   *
+   * <pre>
+   *     - 외부 조인(outer join) 이 되지 않는다.
+   *     - 하지만, on 을 이용하면 사용가능하다.
+   * </pre>
+   *
+   * @throws Exception
+   */
+  @Test
+  void testThetaJoin() throws Exception {
+    // given
+    em.persist(new Member("teamA"));
+    em.persist(new Member("teamB"));
+    em.persist(new Member("teamC"));
+
+    em.flush();
+    em.clear();
+
+    // when
+    // 회원이름과 팀이름이 같은 회원 조회
+
+    List<Member> result =
+        queryFactory.select(member).from(member, team).where(member.username.eq(team.name)).fetch();
+
+    // then
+    assertThat(result).extracting("username").containsExactly("teamA", "teamB");
+  }
 }
