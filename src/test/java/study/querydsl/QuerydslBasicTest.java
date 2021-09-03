@@ -258,7 +258,7 @@ class QuerydslBasicTest {
   /**
    * 연관관계가 없어도 join 가능 (Theta join)
    *
-   * ! 주의할점
+   * <p>! 주의할점
    *
    * <pre>
    *     - 외부 조인(outer join) 이 되지 않는다.
@@ -285,5 +285,54 @@ class QuerydslBasicTest {
 
     // then
     assertThat(result).extracting("username").containsExactly("teamA", "teamB");
+  }
+
+  @Test
+  void testJoinFiltering() throws Exception {
+    // given
+
+    // when
+    // 회원과 팀을 조인하면서, 팀 이름이 teamA 인 팀만 조인, 회원은 모두 조회
+    // JPQL : select m from Member m left join m.team t on t.name='teamA'
+    List<Tuple> result =
+        queryFactory
+            .select(member, team)
+            .from(member)
+            .leftJoin(member.team, team)
+            .on(team.name.eq("teamA")) // ! 정말 외부조인이 필요할 경우에만 사용 권장
+            .fetch();
+
+    for (Tuple tuple : result) {
+      System.out.println("tuple = " + tuple);
+    }
+
+    // then
+  }
+
+  @Test
+  void testJoinOnNoRelation() throws Exception {
+    // given
+    em.persist(new Member("teamA"));
+    em.persist(new Member("teamB"));
+    em.persist(new Member("teamC"));
+
+    em.flush();
+    em.clear();
+
+    // when
+    // 연관관계가 없는 entity 외부 조인
+    // 회원의 이름이 팀 이름과 같은 대상 외부 조인
+
+    List<Tuple> result = queryFactory
+            .select(member, team)
+            .from(member)
+            .leftJoin(team) // ! join 부분이 기존과 다른다. (entity 가 하나만 들어간다.)
+            .on(member.username.eq(team.name)) // id match 부분이 빠져버린다.
+            .fetch();
+
+    // then
+    for (Tuple tuple : result) {
+      System.out.println("tuple = " + tuple);
+    }
   }
 }
