@@ -72,4 +72,25 @@ class QuerydslBasicTest {
     // then
     assertThat(findMember.getUsername()).isEqualTo("member1");
   }
+
+  @Test
+  void testSearchParam() throws Exception {
+    // given
+
+    // when
+    Member findMember =
+        queryFactory
+            .selectFrom(member)
+            .where(
+                // member.username.eq("member1").and(member.age.eq(10)) // and, or 로
+                // chaining 할 수 있다.
+                member.username.eq("member1"), member.age.eq(10)
+                // parameter 로 할 수 있다. 단, and 조건이 된다.
+                // null 은 무시된다.
+                )
+            .fetchOne();
+
+    // then
+    assertThat(findMember.getUsername()).isEqualTo("member1");
+  }
 }
