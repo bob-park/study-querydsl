@@ -148,4 +148,38 @@ class QuerydslBasicTest {
     assertThat(member6.getUsername()).isEqualTo("member6");
     assertThat(memberNull.getUsername()).isNull();
   }
+
+  @Test
+  void testPagination() throws Exception {
+    // given
+
+    // when
+    List<Member> result =
+        queryFactory.selectFrom(member).orderBy(member.username.desc()).offset(1).limit(2).fetch();
+
+    // then
+    assertThat(result.size()).isEqualTo(2);
+  }
+
+  @Test
+  void testPaginationTotalCount() throws Exception {
+    // given
+
+    // when
+
+    // ! count 쿼리는 join 을 줄일 수 있기 때문에, 복잡한 쿼리는 별도로 count 를 생성하여 사용하자
+    QueryResults<Member> fetchResults =
+        queryFactory
+            .selectFrom(member)
+            .orderBy(member.username.desc())
+            .offset(1)
+            .limit(2)
+            .fetchResults();
+
+    // then
+    assertThat(fetchResults.getTotal()).isEqualTo(4);
+    assertThat(fetchResults.getLimit()).isEqualTo(2);
+    assertThat(fetchResults.getOffset()).isEqualTo(1);
+    assertThat(fetchResults.getResults().size()).isEqualTo(2);
+  }
 }
