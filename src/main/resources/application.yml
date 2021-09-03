@@ -13,6 +13,7 @@ spring:
       hibernate:
         #        show_sql: true
         format_sql: true
+        use_sql_comments: true # 주석으로 jpql 이 출력된다.
 #        default_batch_fetch_size: 100
 
 

@@ -8,12 +8,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.entity.Member;
-import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static study.querydsl.entity.QMember.member;
 
 @SpringBootTest
 @Transactional
@@ -66,8 +66,6 @@ class QuerydslBasicTest {
     // given
 
     // when
-    QMember member = QMember.member;
-
     Member findMember =
         queryFactory.select(member).from(member).where(member.username.eq("member1")).fetchOne();
 
