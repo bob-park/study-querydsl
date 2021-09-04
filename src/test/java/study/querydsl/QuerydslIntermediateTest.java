@@ -402,4 +402,40 @@ class QuerydslIntermediateTest {
 
     // then
   }
+
+  @Test
+  void testSQLFunction() throws Exception {
+    // given
+
+    // when
+    List<String> result =
+        queryFactory
+            .select(
+                Expressions.stringTemplate(
+                    "function('replace', {0}, {1}, {2})", member.username, "member", "M"))
+            .from(member)
+            .fetch();
+
+    for (String s : result) {
+      System.out.println("s = " + s);
+    }
+
+
+    // * ansi 표준 SQL function 은 내장하고 있다.
+    List<String> result1 =
+        queryFactory
+            .select(member.username)
+            .from(member)
+            // .where(
+            //    member.username.eq(
+            //        Expressions.stringTemplate("function('lower', {0})", member.username)))
+            .where(member.username.eq(member.username.lower()))
+            .fetch();
+
+    for (String s : result1) {
+      System.out.println("s = " + s);
+    }
+
+    // then
+  }
 }
