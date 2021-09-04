@@ -1,5 +1,7 @@
 package study.querydsl.dto;
 
+import com.querydsl.core.annotations.QueryProjection;
+
 public class MemberDto {
 
   private String username;
@@ -8,6 +10,7 @@ public class MemberDto {
   public MemberDto() {
   }
 
+  @QueryProjection
   public MemberDto(String username, int age) {
     this.username = username;
     this.age = age;

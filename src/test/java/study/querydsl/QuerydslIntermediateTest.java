@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.QMemberDto;
 import study.querydsl.dto.UserDto;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
@@ -126,7 +127,7 @@ class QuerydslIntermediateTest {
   }
 
   /**
-   * DTO Projection
+   * DTO Projection by setter
    *
    * <pre>
    *     - 반드시 기본 생성사가 필요하다. (QueryDSL 이 기본 생성자 생성 후 setter 로 넣는다.)
@@ -153,7 +154,7 @@ class QuerydslIntermediateTest {
   }
 
   /**
-   * DTO Projection
+   * DTO Projection by field
    *
    * <pre>
    *      - 이것은 기본 생성자가 필요 없다.
@@ -201,7 +202,7 @@ class QuerydslIntermediateTest {
   }
 
   /**
-   * DTO Projection
+   * DTO Projection by constructor
    *
    * <pre>
    *     - DTO 의 생성자 대로 생성한다.
@@ -233,6 +234,36 @@ class QuerydslIntermediateTest {
 
     for (UserDto userDto : result1) {
       System.out.println("userDto = " + userDto);
+    }
+
+    // then
+  }
+
+  /**
+   * Projection by @QueryProjection
+   *
+   * <p>! Constructor Projection 과의 차이점
+   *
+   * <pre>
+   *     - 컴파일 단계에서 오류를 잡을 수 있다.
+   *     - 단점
+   *        - @QueryProjection 를 DTO 에 추가해야한다.
+   *        - DTO 에 대해서 QueryDSL 에 대한 의존성이 가지게 된다. - DTO 인 경우 여러 layer 에 거쳐서 사용하니까 너무 치명적일 수 있다.
+   *        - 설계시 고민을 해봐야한다.
+   * </pre>
+   *
+   * @throws Exception
+   */
+  @Test
+  void testQueryProjection() throws Exception {
+    // given
+
+    // when
+    List<MemberDto> result =
+        queryFactory.select(new QMemberDto(member.username, member.age)).from(member).fetch();
+
+    for (MemberDto memberDto : result) {
+      System.out.println("memberDto = " + memberDto);
     }
 
     // then
