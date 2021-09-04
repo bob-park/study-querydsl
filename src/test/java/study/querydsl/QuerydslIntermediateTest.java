@@ -353,4 +353,53 @@ class QuerydslIntermediateTest {
   private Predicate allEq(String usernameParam, Integer ageParam) {
     return usernameEq(usernameParam).and(ageEq(ageParam)); // null 를 체크해주어야 한다.
   }
+
+  /**
+   * 수정, 삭제 벌크 연산
+   *
+   * <pre>
+   *     - JPA 와 동일하게 Persistence Context 무시하고 DB query 를 실행
+   *     - 따라서, Bulk 연산 후 Persistence Context 를 모두 초기화 후에 사용해야한다.
+   * </pre>
+   */
+  @Test
+  void testBulkUpdate() throws Exception {
+    // given
+
+    // when
+    long count =
+        queryFactory.update(member).set(member.username, "비회원").where(member.age.lt(28)).execute();
+
+    em.flush();
+    em.clear();
+
+    List<Member> result = queryFactory.selectFrom(member).fetch();
+
+    for (Member member1 : result) {
+      System.out.println("member1 = " + member1);
+    }
+
+    // then
+    assertThat(count).isEqualTo(2);
+  }
+
+  @Test
+  void testBulkAdd() throws Exception {
+    // given
+
+    // when
+    long count = queryFactory.update(member).set(member.age, member.age.add(1)).execute();
+
+    // then
+  }
+
+  @Test
+  void testBulkDelete() throws Exception {
+    // given
+
+    // when
+    long count = queryFactory.delete(member).where(member.age.gt(18)).execute();
+
+    // then
+  }
 }
