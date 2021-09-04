@@ -20,6 +20,20 @@ import static org.springframework.util.StringUtils.hasText;
 import static study.querydsl.entity.QMember.member;
 import static study.querydsl.entity.QTeam.team;
 
+/**
+ * QuerydslRepositorySupport
+ *
+ * <pre>
+ *     - entity manager 를 얻어올 수 있기 때문에 바로 쓸 수 있다.
+ *     - querydsl 이라는 객체도 사용할 수 있다.
+ *     - QueryFactory 를 제공해주지 않는다.
+ *     - JPAQueryFactory 없이 바로 from() 부터 사용할 수 있다. - select 는 맨 나중에 들어가버린다. 그래서 가독성이 떨어진다.
+ *     - Spring Data 에서 페이징을 getQuerydsl().applyPagination() 으로 가능한데, 별로 도움이 안될 거 같다.
+ *     - Spring data sort 기능이 정상 동작 안한다.
+ * </pre>
+ */
+// public class MemberRepositoryImpl extends QuerydslRepositorySupport
+//    implements MemberRepositoryCustom {
 public class MemberRepositoryImpl implements MemberRepositoryCustom {
 
   private final JPAQueryFactory queryFactory;
@@ -27,6 +41,11 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
   public MemberRepositoryImpl(EntityManager em) {
     this.queryFactory = new JPAQueryFactory(em);
   }
+
+  //  public MemberRepositoryImpl() {
+  //    super(Member.class);
+  //    this.queryFactory = new JPAQueryFactory(getEntityManager());
+  //  }
 
   @Override
   public List<MemberTeamDto> search(MemberSearchCondition condition) {
@@ -46,6 +65,21 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
             ageGoe(condition.getAgeGoe()),
             ageLoe(condition.getAgeLoe()))
         .fetch();
+    //    return from(member)
+    //        .leftJoin(member.team, team)
+    //        .where(
+    //            usernameEq(condition.getUsername()),
+    //            teamNameEq(condition.getTeamName()),
+    //            ageGoe(condition.getAgeGoe()),
+    //            ageLoe(condition.getAgeLoe()))
+    //        .select(
+    //            new QMemberTeamDto(
+    //                member.id.as("memberId"),
+    //                member.username,
+    //                member.age,
+    //                team.id.as("teamId"),
+    //                team.name.as("teamName")))
+    //        .fetch();
   }
 
   @Override
@@ -69,6 +103,25 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
             .fetchResults();
+
+    //    JPQLQuery<MemberTeamDto> jpqlQuery =
+    //        from(member)
+    //            .leftJoin(member.team, team)
+    //            .where(
+    //                usernameEq(condition.getUsername()),
+    //                teamNameEq(condition.getTeamName()),
+    //                ageGoe(condition.getAgeGoe()),
+    //                ageLoe(condition.getAgeLoe()))
+    //            .select(
+    //                new QMemberTeamDto(
+    //                    member.id.as("memberId"),
+    //                    member.username,
+    //                    member.age,
+    //                    team.id.as("teamId"),
+    //                    team.name.as("teamName")));
+    //
+    //    QueryResults<MemberTeamDto> results =
+    //        getQuerydsl().applyPagination(pageable, jpqlQuery).fetchResults(); // 좋지는 않다.
 
     List<MemberTeamDto> content = results.getResults();
     long total = results.getTotal();
