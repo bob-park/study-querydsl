@@ -2,20 +2,18 @@ package study.querydsl.repository.custom.impl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.data.support.PageableExecutionUtils;
 import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberTeamDto;
-import study.querydsl.entity.Member;
 import study.querydsl.repository.custom.MemberRepositoryCustom;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 
 import static org.springframework.util.StringUtils.hasText;
@@ -34,45 +32,24 @@ import static study.querydsl.entity.QTeam.team;
  *     - Spring data sort 기능이 정상 동작 안한다.
  * </pre>
  */
-public class MemberRepositoryImpl extends QuerydslRepositorySupport
-    implements MemberRepositoryCustom {
+// public class MemberRepositoryImpl extends QuerydslRepositorySupport
+//    implements MemberRepositoryCustom {
+public class MemberRepositoryImpl implements MemberRepositoryCustom {
 
   private final JPAQueryFactory queryFactory;
-  //
-  //  public MemberRepositoryImpl(EntityManager em) {
-  //    this.queryFactory = new JPAQueryFactory(em);
-  //  }
 
-  public MemberRepositoryImpl() {
-    super(Member.class);
-    this.queryFactory = new JPAQueryFactory(getEntityManager());
+  public MemberRepositoryImpl(EntityManager em) {
+    this.queryFactory = new JPAQueryFactory(em);
   }
+
+  //  public MemberRepositoryImpl() {
+  //    super(Member.class);
+  //    this.queryFactory = new JPAQueryFactory(getEntityManager());
+  //  }
 
   @Override
   public List<MemberTeamDto> search(MemberSearchCondition condition) {
-    //    return queryFactory
-    //        .select(
-    //            new QMemberTeamDto(
-    //                member.id.as("memberId"),
-    //                member.username,
-    //                member.age,
-    //                team.id.as("teamId"),
-    //                team.name.as("teamName")))
-    //        .from(member)
-    //        .leftJoin(member.team, team)
-    //        .where(
-    //            usernameEq(condition.getUsername()),
-    //            teamNameEq(condition.getTeamName()),
-    //            ageGoe(condition.getAgeGoe()),
-    //            ageLoe(condition.getAgeLoe()))
-    //        .fetch();
-    return from(member)
-        .leftJoin(member.team, team)
-        .where(
-            usernameEq(condition.getUsername()),
-            teamNameEq(condition.getTeamName()),
-            ageGoe(condition.getAgeGoe()),
-            ageLoe(condition.getAgeLoe()))
+    return queryFactory
         .select(
             new QMemberTeamDto(
                 member.id.as("memberId"),
@@ -80,49 +57,71 @@ public class MemberRepositoryImpl extends QuerydslRepositorySupport
                 member.age,
                 team.id.as("teamId"),
                 team.name.as("teamName")))
+        .from(member)
+        .leftJoin(member.team, team)
+        .where(
+            usernameEq(condition.getUsername()),
+            teamNameEq(condition.getTeamName()),
+            ageGoe(condition.getAgeGoe()),
+            ageLoe(condition.getAgeLoe()))
         .fetch();
+    //    return from(member)
+    //        .leftJoin(member.team, team)
+    //        .where(
+    //            usernameEq(condition.getUsername()),
+    //            teamNameEq(condition.getTeamName()),
+    //            ageGoe(condition.getAgeGoe()),
+    //            ageLoe(condition.getAgeLoe()))
+    //        .select(
+    //            new QMemberTeamDto(
+    //                member.id.as("memberId"),
+    //                member.username,
+    //                member.age,
+    //                team.id.as("teamId"),
+    //                team.name.as("teamName")))
+    //        .fetch();
   }
 
   @Override
   public Page<MemberTeamDto> searchPageSimple(MemberSearchCondition condition, Pageable pageable) {
-    //    QueryResults<MemberTeamDto> results =
-    //        queryFactory
-    //            .select(
-    //                new QMemberTeamDto(
-    //                    member.id.as("memberId"),
-    //                    member.username,
-    //                    member.age,
-    //                    team.id.as("teamId"),
-    //                    team.name.as("teamName")))
-    //            .from(member)
-    //            .leftJoin(member.team, team)
-    //            .where(
-    //                usernameEq(condition.getUsername()),
-    //                teamNameEq(condition.getTeamName()),
-    //                ageGoe(condition.getAgeGoe()),
-    //                ageLoe(condition.getAgeLoe()))
-    //            .offset(pageable.getOffset())
-    //            .limit(pageable.getPageSize())
-    //            .fetchResults();
-
-    JPQLQuery<MemberTeamDto> jpqlQuery =
-        from(member)
-            .leftJoin(member.team, team)
-            .where(
-                usernameEq(condition.getUsername()),
-                teamNameEq(condition.getTeamName()),
-                ageGoe(condition.getAgeGoe()),
-                ageLoe(condition.getAgeLoe()))
+    QueryResults<MemberTeamDto> results =
+        queryFactory
             .select(
                 new QMemberTeamDto(
                     member.id.as("memberId"),
                     member.username,
                     member.age,
                     team.id.as("teamId"),
-                    team.name.as("teamName")));
+                    team.name.as("teamName")))
+            .from(member)
+            .leftJoin(member.team, team)
+            .where(
+                usernameEq(condition.getUsername()),
+                teamNameEq(condition.getTeamName()),
+                ageGoe(condition.getAgeGoe()),
+                ageLoe(condition.getAgeLoe()))
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetchResults();
 
-    QueryResults<MemberTeamDto> results =
-        getQuerydsl().applyPagination(pageable, jpqlQuery).fetchResults(); // 좋지는 않다.
+    //    JPQLQuery<MemberTeamDto> jpqlQuery =
+    //        from(member)
+    //            .leftJoin(member.team, team)
+    //            .where(
+    //                usernameEq(condition.getUsername()),
+    //                teamNameEq(condition.getTeamName()),
+    //                ageGoe(condition.getAgeGoe()),
+    //                ageLoe(condition.getAgeLoe()))
+    //            .select(
+    //                new QMemberTeamDto(
+    //                    member.id.as("memberId"),
+    //                    member.username,
+    //                    member.age,
+    //                    team.id.as("teamId"),
+    //                    team.name.as("teamName")));
+    //
+    //    QueryResults<MemberTeamDto> results =
+    //        getQuerydsl().applyPagination(pageable, jpqlQuery).fetchResults(); // 좋지는 않다.
 
     List<MemberTeamDto> content = results.getResults();
     long total = results.getTotal();
