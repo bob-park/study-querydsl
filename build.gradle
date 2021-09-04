@@ -1,7 +1,7 @@
 // QueryDSL 추가
 buildscript {
     ext {
-        queryDslVersion = "5.0.0"
+        queryDslVersion = "4.4.0"
     }
 }
 
@@ -37,13 +37,13 @@ dependencies {
 
     // QueryDSL 추가
     // 이상하게 querydsl-core 를 4.4.0 버전이 주입됨....
-    implementation("com.querydsl:querydsl-core:${queryDslVersion}")
+//    implementation("com.querydsl:querydsl-core:${queryDslVersion}")
     implementation("com.querydsl:querydsl-jpa:${queryDslVersion}")
 
-    annotationProcessor("javax.persistence:javax.persistence-api")
+//    annotationProcessor("javax.persistence:javax.persistence-api")
     annotationProcessor("com.querydsl:querydsl-apt:${queryDslVersion}:jpa")
 
-    testAnnotationProcessor("javax.persistence:javax.persistence-api")
+//    testAnnotationProcessor("javax.persistence:javax.persistence-api")
     testAnnotationProcessor("com.querydsl:querydsl-apt:${queryDslVersion}:jpa")
 
 }
