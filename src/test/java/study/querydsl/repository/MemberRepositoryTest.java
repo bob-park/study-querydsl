@@ -110,7 +110,8 @@ class MemberRepositoryTest {
 
     PageRequest pageRequest = PageRequest.of(0, 3);
 
-    Page<MemberTeamDto> result = memberRepository.searchPageSimple(condition, pageRequest);
+//    Page<MemberTeamDto> result = memberRepository.searchPageSimple(condition, pageRequest);
+    Page<MemberTeamDto> result = memberRepository.searchPageComplex(condition, pageRequest);
 
     // then
     assertThat(result.getSize()).isEqualTo(3);

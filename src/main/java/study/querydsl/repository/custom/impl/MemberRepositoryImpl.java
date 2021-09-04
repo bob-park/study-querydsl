@@ -97,18 +97,19 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
             .limit(pageable.getPageSize())
             .fetch();
 
-    long total =
+    Long total =
         queryFactory
-            .selectFrom(member)
+            .select(member.id.count())
+            .from(member)
             .leftJoin(member.team, team)
             .where(
                 usernameEq(condition.getUsername()),
                 teamNameEq(condition.getTeamName()),
                 ageGoe(condition.getAgeGoe()),
                 ageLoe(condition.getAgeLoe()))
-            .fetchCount();
+            .fetchOne();
 
-    return new PageImpl<>(content, pageable, total);
+    return new PageImpl<>(content, pageable, total != null ? total : 0);
   }
 
   private BooleanExpression usernameEq(String username) {
