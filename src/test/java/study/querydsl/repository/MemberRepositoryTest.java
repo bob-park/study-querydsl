@@ -108,7 +108,7 @@ class MemberRepositoryTest {
     //    condition.setAgeLoe(45);
     //    condition.setTeamName("teamB");
 
-    PageRequest pageRequest = PageRequest.of(0, 3);
+    PageRequest pageRequest = PageRequest.of(0, 5);
 
 //    Page<MemberTeamDto> result = memberRepository.searchPageSimple(condition, pageRequest);
     Page<MemberTeamDto> result = memberRepository.searchPageComplex(condition, pageRequest);

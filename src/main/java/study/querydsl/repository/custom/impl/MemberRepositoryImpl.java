@@ -2,10 +2,12 @@ package study.querydsl.repository.custom.impl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberTeamDto;
@@ -97,7 +99,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
             .limit(pageable.getPageSize())
             .fetch();
 
-    Long total =
+    JPAQuery<Long> countQuery =
         queryFactory
             .select(member.id.count())
             .from(member)
@@ -106,10 +108,13 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                 usernameEq(condition.getUsername()),
                 teamNameEq(condition.getTeamName()),
                 ageGoe(condition.getAgeGoe()),
-                ageLoe(condition.getAgeLoe()))
-            .fetchOne();
+                ageLoe(condition.getAgeLoe()));
 
-    return new PageImpl<>(content, pageable, total != null ? total : 0);
+    // 첫 페이지 - 전체 content 개수가 limit 보다 작을 경우 count query 실행 안함
+    // 마지막 페이지 - count query 실행 안함
+    return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+
+    //    return new PageImpl<>(content, pageable, total != null ? total : 0);
   }
 
   private BooleanExpression usernameEq(String username) {
