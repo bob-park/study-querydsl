@@ -1,6 +1,10 @@
 package study.querydsl;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
+import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.UserDto;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
@@ -94,5 +100,141 @@ class QuerydslIntermediateTest {
 
     // then
 
+  }
+
+  /**
+   * 순수 JPA 에서 DTO 반환
+   *
+   * @throws Exception
+   */
+  @Test
+  void testJpaDto() throws Exception {
+    // given
+
+    // when
+    List<MemberDto> result =
+        em.createQuery(
+                "select new study.querydsl.dto.MemberDto(m.username, m.age) from Member m",
+                MemberDto.class)
+            .getResultList();
+
+    for (MemberDto memberDto : result) {
+      System.out.println("memberDto = " + memberDto);
+    }
+
+    // then
+  }
+
+  /**
+   * DTO Projection
+   *
+   * <pre>
+   *     - 반드시 기본 생성사가 필요하다. (QueryDSL 이 기본 생성자 생성 후 setter 로 넣는다.)
+   * </pre>
+   *
+   * @throws Exception
+   */
+  @Test
+  void testDtoProjectionBySetter() throws Exception {
+    // given
+
+    // when
+    List<MemberDto> result =
+        queryFactory
+            .select(Projections.bean(MemberDto.class, member.username, member.age))
+            .from(member)
+            .fetch();
+
+    for (MemberDto memberDto : result) {
+      System.out.println("memberDto = " + memberDto);
+    }
+
+    // then
+  }
+
+  /**
+   * DTO Projection
+   *
+   * <pre>
+   *      - 이것은 기본 생성자가 필요 없다.
+   *      - QueryDSL 이 바로 Field 에 들어간다.
+   *  </pre>
+   *
+   * @throws Exception
+   */
+  @Test
+  void testDtoProjectionByField() throws Exception {
+    // given
+
+    // when
+    List<MemberDto> result =
+        queryFactory
+            .select(Projections.fields(MemberDto.class, member.username, member.age))
+            .from(member)
+            .fetch();
+
+    for (MemberDto memberDto : result) {
+      System.out.println("memberDto = " + memberDto);
+    }
+
+    // field 의 이름이 다를 경우 as() 를 이용해서 맞춰줄 수 있다.
+    // sub query 하여 별칭을 줘서 넣어줄 수도 있다.
+    QMember subMember = new QMember("sub_member");
+
+    List<UserDto> userResult =
+        queryFactory
+            .select(
+                Projections.fields(
+                    UserDto.class,
+                    member.username.as("name"),
+                    // ExpressionUtils.as(member.username, "name"), // 이렇게도 할 수 있지만, 지저분하다.
+                    ExpressionUtils.as(
+                        JPAExpressions.select(subMember.age.max()).from(subMember), "age")))
+            .from(member)
+            .fetch();
+
+    for (UserDto userDto : userResult) {
+      System.out.println("userDto = " + userDto);
+    }
+
+    // then
+  }
+
+  /**
+   * DTO Projection
+   *
+   * <pre>
+   *     - DTO 의 생성자 대로 생성한다.
+   *     - 단, 생성자의 파라미터에 data type 이 맞아야 한다.
+   * </pre>
+   *
+   * @throws Exception
+   */
+  @Test
+  void testDtoProjectionByConstructor() throws Exception {
+    // given
+
+    // when
+    List<MemberDto> result =
+        queryFactory
+            .select(Projections.constructor(MemberDto.class, member.username, member.age))
+            .from(member)
+            .fetch();
+
+    for (MemberDto memberDto : result) {
+      System.out.println("memberDto = " + memberDto);
+    }
+
+    List<UserDto> result1 =
+        queryFactory
+            .select(Projections.constructor(UserDto.class, member.username, member.age))
+            .from(member)
+            .fetch();
+
+    for (UserDto userDto : result1) {
+      System.out.println("userDto = " + userDto);
+    }
+
+    // then
   }
 }
